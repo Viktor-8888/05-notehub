@@ -19,7 +19,7 @@ export default function App() {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ["notes", search, page],
     queryFn: () => fetchNotes(search, page),
     placeholderData: keepPreviousData,
@@ -27,7 +27,7 @@ export default function App() {
   const handleSearch = useDebouncedCallback((newNote: string) => {
     setSearch(newNote);
     setPage(1);
-  }, 300);
+  }, 500);
   const totalPages = data?.totalPages ?? 0;
 
   const queryClient = useQueryClient();
@@ -52,10 +52,10 @@ export default function App() {
     mutationDeleteNote.mutate(id);
   };
   useEffect(() => {
-    if (data && data.notes.length === 0) {
-      toast("No notes found for your request.");
+    if (!isFetching && data && data.notes.length === 0 && search !== "") {
+      toast("No notes found for your request.", { id: "no-notes" });
     }
-  }, [data]);
+  }, [isFetching, data, search]);
   return (
     <div className={css.app}>
       <Toaster
