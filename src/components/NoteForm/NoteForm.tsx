@@ -1,13 +1,14 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useId } from "react";
 import css from "./NoteForm.module.css";
 import type { CreateNoteRequest } from "../../types/note";
+import { createNote } from "../../services/noteService";
+import toast from "react-hot-toast";
 
 interface NoteFormProps {
-  onSubmit: (values: CreateNoteRequest) => void;
   onClose: () => void;
-  isPending: boolean;
 }
 
 const INITIAL_VALUES: CreateNoteRequest = {
@@ -27,15 +28,27 @@ const NoteSchema = Yup.object({
     .required("Tag is required"),
 });
 
-export default function NoteForm({
-  onSubmit,
-  onClose,
-  isPending,
-}: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
   const fieldId = useId();
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: createNote,
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["notes"],
+      });
+      toast.success("Note created");
+      onClose();
+    },
+    onError: () => {
+      toast.error("Failed to create note");
+    },
+  });
 
   const handleSubmit = (values: CreateNoteRequest) => {
-    onSubmit(values);
+    mutate(values);
   };
   return (
     <Formik
