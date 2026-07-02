@@ -9,7 +9,6 @@ axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
-  perPage: number;
 }
 
 export async function fetchNotes(
